@@ -12,17 +12,20 @@ export class Cliente {
   @Column({ length: 100 })
   nombre: string;
 
-  @Column({ length: 100 })
-  apellido: string;
+  @Column({ length: 100, nullable: true })
+  apellido?: string;
 
   @Column({ unique: true, length: 255 })
   email: string;
 
-  @Column({ length: 20 })
-  telefono: string;
+  @Column({ length: 255, select: false })
+  password: string;
 
-  @Column({ length: 255 })
-  direccion: string;
+  @Column({ length: 20, nullable: true })
+  telefono?: string;
+
+  @Column({ length: 255, nullable: true })
+  direccion?: string;
 
   @Column({ length: 100, nullable: true })
   empresa?: string;

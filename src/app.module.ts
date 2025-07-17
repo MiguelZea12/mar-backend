@@ -10,6 +10,7 @@ import { ClientesModule } from './modules/clientes/clientes.module';
 import { MenuModule } from './modules/menu/menu.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { InventarioModule } from './modules/inventario/inventario.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 /**
  * Módulo principal de la aplicación
@@ -32,6 +33,7 @@ import { InventarioModule } from './modules/inventario/inventario.module';
     }),
 
     // Módulos de negocio
+    AuthModule,
     ClientesModule,
     MenuModule,
     OrdersModule,
