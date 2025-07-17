@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { MenuItem } from '../../entities/menu-item.entity';
 import { Categoria } from '../../entities/categoria.entity';
 
+const SALUDOS = ['hola', 'buenas', 'buenos días', 'buenas tardes', 'buenas noches', 'hello', 'hi'];
+
 @Injectable()
 export class ChatbotService {
   constructor(
@@ -14,42 +16,55 @@ export class ChatbotService {
   ) {}
 
   async handleQuestion(message: string): Promise<{ reply: string }> {
+    const msg = message.trim().toLowerCase();
+    // Si es un saludo simple, responde solo con un saludo y una pregunta
+    if (SALUDOS.some(saludo => msg === saludo || msg.startsWith(saludo + ' '))) {
+      return {
+        reply: '¡Hola! ¿En qué puedo ayudarte con el menú hoy? ¿Te gustaría ver las categorías, los platos principales o las bebidas?'
+      };
+    }
+
     // Consultar productos y categorías
-    const menuItems = await this.menuItemRepository.find({ relations: ['categoria'] });
-    // Construir prompt
-    let prompt = 'Estos son los productos del menú y sus categorías disponibles en el restaurante:';
-    const categoriasMap = new Map<number, string>();
-    menuItems.forEach(item => {
-      if (item.categoria && !categoriasMap.has(item.categoria.id)) {
-        categoriasMap.set(item.categoria.id, item.categoria.nombre);
+    const menuItems = await this.menuItemRepository.find({ where: { disponible: true }, relations: ['categoria'] });
+    const categorias = await this.categoriaRepository.find();
+    if (!categorias.length) {
+      return {
+        reply: 'No hay categorías registradas en el sistema aún. ¿Te gustaría consultar otra cosa?'
+      };
+    }
+
+    // Buscar si la pregunta menciona una categoría
+    const categoriaEncontrada = categorias.find(cat => msg.includes(cat.nombre.toLowerCase()));
+    if (categoriaEncontrada) {
+      const itemsCategoria = menuItems.filter(item => item.categoriaId === categoriaEncontrada.id);
+      if (!itemsCategoria.length) {
+        return { reply: `Actualmente no hay productos disponibles en la categoría "${categoriaEncontrada.nombre}". ¿Te gustaría consultar otra categoría o producto?` };
       }
-    });
-    categoriasMap.forEach((nombre, id) => {
-      prompt += `\nCategoría: ${nombre}`;
-      menuItems.filter(i => i.categoria && i.categoria.id === id).forEach(i => {
-        prompt += `\n  - ${i.nombre}: ${i.descripcion} (Precio: $${i.precio})`;
+      let respuesta = `Productos en la categoría ${categoriaEncontrada.nombre}:
+`;
+      itemsCategoria.forEach(i => {
+        respuesta += `• ${i.nombre}: ${i.descripcion} (Precio: $${i.precio})\n`;
       });
-    });
-    prompt += `\n\nPregunta del cliente: ${message}`;
-    // Llamar a OpenRouter
-    const openRouterApiKey = process.env.OPENROUTER_API_KEY;
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openRouterApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'mistralai/mistral-7b-instruct',
-        messages: [
-          { role: 'system', content: 'Eres un asistente experto en menús de restaurantes.' },
-          { role: 'user', content: prompt },
-        ],
-        max_tokens: 256,
-      }),
-    });
-    const data = await response.json();
-    const reply = data.choices?.[0]?.message?.content || 'No se pudo obtener respuesta del chatbot.';
-    return { reply };
+      respuesta += '\n¿Te gustaría saber más sobre algún producto o ver otra categoría?';
+      return { reply: respuesta };
+    }
+
+    // Buscar si la pregunta menciona un producto
+    const productoEncontrado = menuItems.find(item => msg.includes(item.nombre.toLowerCase()));
+    if (productoEncontrado) {
+      let respuesta = `Información sobre "${productoEncontrado.nombre}":\n`;
+      respuesta += `${productoEncontrado.descripcion} (Precio: $${productoEncontrado.precio})\n`;
+      respuesta += '¿Te gustaría saber algo más o consultar otro producto?';
+      return { reply: respuesta };
+    } else if (menuItems.some(item => msg.includes(item.nombre.toLowerCase())) === false && categorias.some(cat => msg.includes(cat.nombre.toLowerCase())) === false && msg.length > 3) {
+      // Si preguntó por un producto que no existe o no está disponible
+      return { reply: 'Actualmente no hay stock o no existe ese producto. ¿Te gustaría consultar otra cosa?' };
+    }
+
+    // Siempre mostrar las categorías aunque no tengan productos
+    let categoriasLista = categorias.map(cat => `• ${cat.nombre}`).join('\n');
+    return {
+      reply: `Estas son las categorías disponibles:\n${categoriasLista}\n¿Sobre cuál te gustaría saber más?`
+    };
   }
 } 
