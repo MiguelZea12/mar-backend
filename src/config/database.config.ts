@@ -14,7 +14,7 @@ export const getDatabaseConfig = (configService: ConfigService): TypeOrmModuleOp
   database: configService.get('DB_NAME'),
   entities: [__dirname + '/../entities/*.entity{.ts,.js}'],
   synchronize: configService.get('NODE_ENV') === 'development', // Solo en desarrollo
-  logging: false, // Desactivamos el logging para menos ruido
+  logging: true, // Activamos el logging para ver qué pasa con las tablas
   // Configuración SSL para Neon (base de datos en la nube)
   ssl: {
     rejectUnauthorized: false,
