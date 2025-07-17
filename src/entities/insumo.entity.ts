@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
+import { Categoria } from './categoria.entity';
 
 /**
  * Entidad Insumo - Representa los insumos del inventario
@@ -35,6 +36,13 @@ export class Insumo {
 
   @Column({ default: true })
   activo: boolean;
+
+  @Column({ name: 'categoriaId', type: 'int' })
+  categoriaId: number;
+
+  @ManyToOne(() => Categoria, categoria => categoria.insumos, { nullable: false, onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'categoriaId' })
+  categoria: Categoria;
 
   @CreateDateColumn()
   createdAt: Date;
