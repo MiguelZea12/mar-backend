@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { Insumo } from './insumo.entity';
 
 /**
  * Entidad Categoría - Representa las categorías de alimentos/menús
@@ -27,4 +28,7 @@ export class Categoria {
   // Relación uno a muchos con items del menú
   @OneToMany('MenuItem', 'categoria')
   menuItems: any[];
+
+  @OneToMany(() => Insumo, insumo => insumo.categoria)
+  insumos: Insumo[];
 }
