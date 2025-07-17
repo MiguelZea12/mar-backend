@@ -56,12 +56,9 @@ export class ChatbotService {
       respuesta += `${productoEncontrado.descripcion} (Precio: $${productoEncontrado.precio})\n`;
       respuesta += '¿Te gustaría saber algo más o consultar otro producto?';
       return { reply: respuesta };
-    } else if (menuItems.some(item => msg.includes(item.nombre.toLowerCase())) === false && categorias.some(cat => msg.includes(cat.nombre.toLowerCase())) === false && msg.length > 3) {
-      // Si preguntó por un producto que no existe o no está disponible
-      return { reply: 'Actualmente no hay stock o no existe ese producto. ¿Te gustaría consultar otra cosa?' };
     }
 
-    // Siempre mostrar las categorías aunque no tengan productos
+    // Si no se encontró nada específico, responde SOLO con las categorías disponibles
     let categoriasLista = categorias.map(cat => `• ${cat.nombre}`).join('\n');
     return {
       reply: `Estas son las categorías disponibles:\n${categoriasLista}\n¿Sobre cuál te gustaría saber más?`
