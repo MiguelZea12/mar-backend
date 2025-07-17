@@ -210,18 +210,6 @@ curl -X POST http://localhost:3000/api/orders \
 - **Insumo**: Inventario de insumos
 - **Delivery**: Información de entregas
 
-## 🧪 Testing
-
-```bash
-# Tests unitarios
-npm run test
-
-# Tests e2e
-npm run test:e2e
-
-# Cobertura de tests
-npm run test:cov
-```
 
 ## 📦 Scripts Disponibles
 
